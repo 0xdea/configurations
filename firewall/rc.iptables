@@ -1,0 +1,125 @@
+#!/bin/sh
+
+#
+# $Id: rc.iptables,v 1.1 2017/02/26 09:32:21 raptor Exp $
+#
+# rc.iptables - sample iptables ruleset for host/masq firewall
+# Copyright (c) 2004-2017 Marco Ivaldi <raptor@0xdeadbeef.info>
+#
+# Iptables is used to set up, maintain, and inspect the tables of IP packet 
+# filter rules in the Linux kernel. This is a sample basic ruleset for the
+# configuration of a Linux stateful packet filter.
+#
+# Tested on Linux 3.16.39 (Debian GNU/Linux 8.7). Modify according to your
+# local configuration.
+#
+
+###############################################################################
+# Variables
+#
+# User-defined variables may be defined and used later, simplifying the
+# configuration file.
+#
+
+# available interfaces
+EXT_IF="eth0"
+#INT_IF="eth1"
+VPN_IF="tun0"
+
+# list of networks
+#EXT_NET="x.x.x.0/24"
+#INT_NET="y.y.y.0/24"
+
+# list of hosts
+FW_EXT="x.x.x.x"
+
+# misc
+#TRUSTED="$EXT_NET"
+
+###############################################################################
+# Options
+#
+# Options tune the behaviour of the kernel.
+#
+
+# enable ip forwarding
+echo 1 > /proc/sys/net/ipv4/ip_forward
+
+# prevent syn floods
+echo 1 > /proc/sys/net/ipv4/tcp_syncookies
+
+###############################################################################
+# Kernel Modules
+#
+# Load kernel modules for connection tracking of weird/stupid protocols
+# (e.g. FTP).
+#
+
+# load kernel modules
+/sbin/modprobe ip_conntrack_ftp
+/sbin/modprobe ip_nat_ftp
+
+###############################################################################
+# Translation
+#
+# Translation rules specify how addresses are to be mapped or redirected to
+# other addresses.
+#
+
+# default policy
+/sbin/iptables -t nat -F
+/sbin/iptables -t nat -P POSTROUTING ACCEPT
+/sbin/iptables -t nat -P PREROUTING ACCEPT
+/sbin/iptables -t nat -P OUTPUT ACCEPT
+
+# masquerading
+#/sbin/iptables -t nat -A POSTROUTING -o $EXT_IF -s $INT_NET -j SNAT --to-source $FW_EXT
+/sbin/iptables -t nat -A POSTROUTING -o $EXT_IF -j MASQUERADE
+
+###############################################################################
+# Packet Filtering
+#
+# Stateful and stateless packet filtering provides rule-based blocking or
+# passing of packets.
+#
+
+# default policy
+/sbin/iptables -F
+/sbin/iptables -X
+/sbin/iptables -P INPUT DROP
+/sbin/iptables -P OUTPUT DROP
+/sbin/iptables -P FORWARD DROP
+
+# trusted interfaces
+/sbin/iptables -A INPUT -i lo -j ACCEPT
+/sbin/iptables -A OUTPUT -o lo -j ACCEPT
+#/sbin/iptables -A INPUT -i $INT_IF -j ACCEPT
+#/sbin/iptables -A OUTPUT -o $INT_IF -j ACCEPT
+/sbin/iptables -A INPUT -i $VPN_IF -j ACCEPT
+/sbin/iptables -A OUTPUT -o $VPN_IF -j ACCEPT
+/sbin/iptables -A FORWARD -i $VPN_IF -j ACCEPT
+/sbin/iptables -A FORWARD -o $VPN_IF -j ACCEPT
+
+# egress filtering
+#/sbin/iptables -A OUTPUT -o $EXT_IF -s ! $FW_EXT -j DROP
+
+# anti-spoofing
+#/sbin/iptables -A INPUT -i $EXT_IF -s 127.0.0.0/8 -j DROP
+#/sbin/iptables -A INPUT -i $EXT_IF -s 10.0.0.0/8 -j DROP
+#/sbin/iptables -A INPUT -i $EXT_IF -s 172.16.0.0/12 -j DROP
+#/sbin/iptables -A INPUT -i $EXT_IF -s 192.168.0.0/16 -j DROP
+
+# keep state (inbound and outbound)
+/sbin/iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+/sbin/iptables -A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+#/sbin/iptables -A FORWARD -m state --state ESTABLISHED,RELATED -j ACCEPT
+
+# outbound traffic
+/sbin/iptables -A OUTPUT -o $EXT_IF -m state --state NEW -j ACCEPT
+#/sbin/iptables -A FORWARD -o $EXT_IF -m state --state NEW -j ACCEPT
+
+# inbound traffic
+/sbin/iptables -A INPUT -i $EXT_IF -p tcp -d $FW_EXT --dport 80 --syn -j ACCEPT
+/sbin/iptables -A INPUT -i $EXT_IF -p tcp -d $FW_EXT --dport 443 --syn -j ACCEPT
+/sbin/iptables -A INPUT -i $EXT_IF -p udp -d $FW_EXT --dport 53 -j ACCEPT
+#/sbin/iptables -A INPUT -i $EXT_IF -p tcp -s $TRUSTED -d $FW_EXT --dport 22 --syn -j ACCEPT
