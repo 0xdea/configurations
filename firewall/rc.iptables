@@ -1,8 +1,6 @@
 #!/bin/sh
 
 #
-# $Id: rc.iptables,v 1.1 2017/02/26 09:32:21 raptor Exp $
-#
 # rc.iptables - sample iptables ruleset for host/masq firewall
 # Copyright (c) 2004-2017 Marco Ivaldi <raptor@0xdeadbeef.info>
 #
