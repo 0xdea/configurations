@@ -1,6 +1,4 @@
 #
-# $Id: torrc,v 1.5 2017/02/26 08:47:35 raptor Exp $
-#
 # torrc - Sample configuration file for a Tor relay/bridge
 # Copyright (c) 2017 Marco Ivaldi <raptor@0xdeadbeef.info>
 #
@@ -16,7 +14,7 @@
 # tools with built-in privacy features.
 #
 # This sample configuration file has been tested on FreeBSD with Tor
-# 0.2.9.9.
+# 0.3.0.10.
 #
 # See also:
 # https://www.torproject.org/docs/tor-manual.html
@@ -97,8 +95,8 @@ Log notice syslog
 #ORPort 9001
 # If you want to listen on a port other than the one advertised in
 # ORPort (e.g. to advertise 443 but bind to 9090), you can do it as
-# follows.  You'll need to do ipchains or other port forwarding
-# yourself to make this work. 
+# follows. You'll need to do pf or other port forwarding yourself 
+# to make this work. 
 # For instance, a xinetd configuration to accomplish this might be:
 # service orport
 # {
@@ -133,19 +131,16 @@ Nickname mytorrelay
 # 2^20, etc.
 #RelayBandwidthRate 100 KBytes  # Throttle traffic to 100KB/s (800Kbps)
 #RelayBandwidthBurst 200 KBytes # But allow bursts up to 200KB (1600Kb)
-RelayBandwidthRate 1 MBytes # 60 TB/Month > 6442450944/2678400/2=1202
+#RelayBandwidthRate 1 MBytes # 60 TB/Month > 6442450944/2678400/2=1202
+RelayBandwidthRate 2 MBytes
 
 # Use these to restrict the maximum traffic per day, week, or month.
 # Note that this threshold applies separately to sent and received bytes,
 # not to their sum: setting "40 GB" may allow up to 80 GB total before
 # hibernating.
-# Set a maximum of 40 gigabytes each way per period.
-#AccountingMax 40 GBytes
-# Each period starts daily at midnight (AccountingMax is per day)
-#AccountingStart day 00:00
-# Each period starts on the 3rd of the month at 15:00 (AccountingMax
-# is per month)
-#AccountingStart month 3 15:00
+AccountingMax 1536 GBytes # 6144/4 GB/Week
+AccountingRule sum
+AccountingStart week 1 00:00
 
 # Administrative contact information for this relay or bridge. This line
 # can be used to contact you if your relay or bridge is misconfigured or
