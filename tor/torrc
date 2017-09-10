@@ -131,7 +131,7 @@ Nickname mytorrelay
 # 2^20, etc.
 #RelayBandwidthRate 100 KBytes  # Throttle traffic to 100KB/s (800Kbps)
 #RelayBandwidthBurst 200 KBytes # But allow bursts up to 200KB (1600Kb)
-#RelayBandwidthRate 1 MBytes # 60 TB/Month > 6442450944/2678400/2=1202
+#RelayBandwidthRate 1 MBytes # 6 TB/Month > 6442450944/2678400/2=1202
 RelayBandwidthRate 2 MBytes
 
 # Use these to restrict the maximum traffic per day, week, or month.
