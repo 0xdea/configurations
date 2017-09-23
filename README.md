@@ -1,2 +1,2 @@
 # configurations
-Configuration templates for common information security platforms. YMMV.
+Configuration templates for common network security platforms. YMMV.
